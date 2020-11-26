@@ -1,0 +1,134 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src = 'd3.js'></script>
+    <script src = 'https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js'></script>
+
+    <meta property='og:title' content='Disney Data Analysis'/>
+
+
+
+    <title>Walt Disney Studios Movie Data Analysis</title>
+</head>
+
+
+<body>
+    <!-- <div id="info">
+        a
+    </div> -->
+    <img src="https://google.com" alt="">
+    <div id="tooltip"></div>
+    <div id="graphic">
+        <div id="sections">
+            <section class="step">
+                <div class="title"></div>
+                <br><br>
+                <h1>Walt Disney's Box Office Movie Data Analysis</h1>
+                <p>By <a href = 'https://www.linkedin.com/in/phan-alexander/'>Alexander Phan</a></p>
+                <p>
+                Founded in the early 1920s, The Walt Disney Company has released hundreds of movies in a wide range of genres and although directed towards a younger audience, their movies still captivate persons of all different ages. <br><br>
+                We will go through the data analyze trends in Disney movies and how movies have changed over the decades. 
+                <br><br>
+                <b>On the right, you will see a dot plot of the top movies and its received gross income received in dollars.</b> <br><br>
+
+                <span class="helper-text">You can hover over any bubble to reveal more information in the form of a tooltip at any time.</span> <br><br>
+
+                <div class="selectMovies">View Top Number Of Movies:  <select id="selectFirst" class='select-dropdown'></select></div>
+                <div class="searchName">Search By Movie Title: <select id="selectMovieName" class="select-dropdown"></select></div>
+
+                <br><br>
+                <i><small><span class="helper">Data Source: Disney Character Success by Kelly Garrett from data.world<br>
+                    Source: Based on Cuthbert Chow's tutorial on animated scrollytelling</span></small></i>
+                </p>
+                
+            </section>
+            <section class="step">
+                <p>
+                To your right, you will see each movie clustered by genre of which there are 12 categories. In the data set, there are
+                some missing values for the genre, these are encoded which the teal color as shown in the legend. The size of the bubble
+                represents the proportion in terms of total gross income received from the movie. In this visualization, we can deduce at 
+                first glance that Disney has created many comedy and action movies. The action movies seem to generally garner an above-average
+                total gross revenue. <br><br>
+
+                Conversely, there seems to have been a lot of comedies and dramas released, but as shown the size of the bubbles are smaller. <br><br>
+                Some questions that we might have right now, though, is how this gross income relates in terms of inflation. Also, how about the amount
+                of time it takes for a certian movie to be produced? Intuitively, a drama or comedy movie might require much less resource to produce
+                than an epic action movie. Unfortunately, this data set is limited and we may only be able to answer some of these questions. 
+                </p>
+                <svg id = 'legend' width = '400px' height = '500px'></svg>
+            </section>
+             <section class = 'step'>
+                <svg id = 'legend2' width = '400px' height = '450px'></svg>
+                <p>First, we can take a look at the overall picture of gross income received over the decades starting from the late 1930's all they way
+                    to 2015. On the y axis, we have the total gross income that Disney received from movies that year. </p>
+            </section>
+            <section class='step'><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <p>However, we should make some adjustments when it comes to inflation. In this graph, we can see the adjusted gross income
+                    per year. Here, yellow area indicates the adjusted gross income while the green is the regular total gross income.</p>
+            </section>
+            <section class='step'><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <p>We can then overlap the two graphs to compare the total gross income versus the total adjusted gross income.</p>
+            </section>
+            <section class='step'>
+                <p>
+                    Moving forward, we can view the total income (adjusted for inflation) by each genre over the years. You can use the select-able dropdown   
+                    to select different genres to view.
+                </p>
+                <select id="selectButton" class='select-dropdown'></select>
+            </section>
+
+            <section class='step'>
+                <p>
+                    We can also explore the number of movies released by genre over the decades as well. Similarly to the previous chart, 
+                    you can also select using the drop down which specific genre you wish to explore.
+                    
+                </p>
+                <select id="selectNumButton" class='select-dropdown'></select>
+            </section>
+            <section class="step">
+                <!-- <br><br><br><br><br><br> -->
+                <p>
+                    In this bar chart, we can see that adventure clearly is the most lucrative that Disney releases. This category envelops many very high budget movies such as Star Wars VII
+                    Finding Nemo, The Jungle Book, Toy Story, and other classics. <br><br>
+                    However, we must take into account that most movies in the adventure category have a very high budget and require a lot of time to produce. For example, Star Wars VII grossed $940 million
+                    (adjusted for inflation) and the film's conception was back around 2012. On January 2013, they named directors. The script took about a year, and filming began in 2014. The film was released at the end of 2015. 
+                    This was nearly a 3-4 year process. <br><br>
+                    If we contrast this with a comedy movie like Freaky Friday ($150 million, adjusted for inflation), the movie was wrapped up within about 1-2 years. <br><br>
+                    The question begs, which movie genre gives the higher rate of return and the fastest?
+                </p>
+                
+            </section>
+        
+        
+            <section class='step'>
+                <h2>Conclusion</h2>
+                <p>
+                    Based on our analysis, it seems like Disney heavily focuses their box office movie releases to three main genres: Adventure, Comedy, and Action. 
+                    Within the last decade or so, a good majority if Disney's income coming from movies come from Action and Adventure movies. Although the production, filming,
+                    post-production, editing, etc. may be much more extensive than movies in other genres, the amount of income these titles receive outweigh the time it takes to make
+                    them. 
+                </p>
+                <p>
+                    With limited data, we are limited in the conclusions we can make. Some next steps would be to scrap or collect data on time to create specific titles, and create 
+                    additional visualizations that involve specific actors, directors, writers, etc. 
+                </p>
+                <p>
+                    
+                </p>
+            </section>
+        </div>
+        <div id="vis">
+
+        </div>
+    </div>
+
+    
+
+    
+    <script src = 'scroller.js'></script>
+    <script src = 'sections.js'></script>
+
+</body>
+</html>
