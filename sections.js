@@ -3,7 +3,7 @@ let svg;
 let simulation, nodes;
 let categoryLegend;
 let currentStep;
-let grossIncSizeScale, categoryColorScale, xGrossIncScale, yGrossIncScale;
+let grossIncSizeScale, categoryColorScale, xGrossIncScale, yGrossIncScale, xAreaScale, yAreaScale, yAreaAdjScale;
 let topMoviesNum;
 // let scales; // create all the scale variables here
 
@@ -61,6 +61,7 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
   })
 
 
+
   // sort data by total gross
   processedData.sort((a, b) => (a.totalGross < b.totalGross ? 1 : -1));
   dataset = processedData;
@@ -70,16 +71,211 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
     return d.genre === "" ? { ...d, genre: "Missing" } : d;
   });
 
+  initAreaData();
+
   createScales();
   setTimeout(drawInitial(), 2000);
 })
 
+function initGenreData(){
+  genreData = [
+    { genre: "Musical", income: 0 },
+    { genre: "Adventure", income: 0 },
+    { genre: "Drama", income: 0 },
+    { genre: "Comedy", income: 0 },
+    { genre: "Action", income: 0 },
+    { genre: "Horror", income: 0 },
+    { genre: "Romantic Comedy", income: 0 },
+    { genre: "Thriller/Suspense", income: 0 },
+    { genre: "Western", income: 0 },
+    { genre: "Black Comedy", income: 0 },
+    { genre: "Concert/Performance", income: 0 },
+    { genre: "Documentary", income: 0 },
+    { genre: "Missing", income: 0 },
+  ];
+
+  dataset.forEach(function (d) {
+    let index = genreMap[d.genre ?? "Missing"];
+    genreData[index].income += d.totalGross;
+  });
+  genreData.sort((a, b) => (a.income > b.income ? -1 : 1));
+}
+
+function initAreaData(){
+  areaData = d3
+    .nest()
+    .key(function (d) {
+      return d3.timeYear(d.date);
+    })
+    .rollup(function (d) {
+      return {
+        totalGross: d3.sum(d, (g) => g.totalGross),
+        Musical: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Musical" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Musical" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Musical" ? 1 : 0;
+          }),
+        },
+        Adventure: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Adventure" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Adventure" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Adventure" ? 1 : 0;
+          }),
+        },
+        Drama: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Drama" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Drama" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Drama" ? 1 : 0;
+          }),
+        },
+        Comedy: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Comedy" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Comedy" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Comedy" ? 1 : 0;
+          }),
+        },
+        Action: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Action" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Action" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Action" ? 1 : 0;
+          }),
+        },
+        Horror: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Horror" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Horror" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Horror" ? 1 : 0;
+          }),
+        },
+        "Romantic Comedy": {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Romantic Comedy" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Romantic Comedy" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Romantic Comedy" ? 1 : 0;
+          }),
+        },
+        "Thriller/Suspense": {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Thriller/Suspense" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Thriller/Suspense" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Thriller/Suspense" ? 1 : 0;
+          }),
+        },
+        Western: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Western" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Western" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Western" ? 1 : 0;
+          }),
+        },
+        "Black Comedy": {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Black Comedy" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Black Comedy" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Black Comedy" ? 1 : 0;
+          }),
+        },
+        "Concert/Performance": {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Concert/Performance" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Concert/Performance" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Concert/Performance" ? 1 : 0;
+          }),
+        },
+        Documentary: {
+          totalGross: d3.sum(d, function (g) {
+            return g.genre == "Documentary" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre == "Documentary" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Documentary" ? 1 : 0;
+          }),
+        },
+        Missing: {
+          totalGross: d3.sum(d, function (g) {
+            // console.log("G",g);
+            return g.genre === "Missing" ? g.totalGross : 0;
+          }),
+          adjGross: d3.sum(d, function (g) {
+            return g.genre === "Missing" ? g.adjGross : 0;
+          }),
+          total: d3.sum(d, function (g) {
+            return g.genre == "Missing" ? 1 : 0;
+          }),
+        },
+        adjGross: d3.sum(d, (g) => g.adjGross),
+        total: d3.sum(d, (g) => 1),
+      };
+    })
+    .entries(dataset);
+
+  areaData.sort((a, b) => (new Date(a.key) < new Date(b.key) ? -1 : 1));
+
+  areaData.map((d) => (d.key = new Date(d.key)));
+
+}
+
 function createScales(){
+  // console.log("AREA In create", areaData);
     categoryColorScale = d3.scaleOrdinal(categories, colors);
     grossIncSizeScale = d3.scaleLinear(d3.extent(dataset, (d) => d.totalGross), [5,35]);
     xGrossIncScale = d3.scaleLinear(d3.extent(dataset, (d) => d.totalGross), [margin.left, margin.left + width]);
     yGrossIncScale = d3.scaleLinear().domain([0, d3.max(dataset, (d) => d.totalGross)]).range([margin.top + height, margin.top]);
     yDotScale = d3.scaleBand().range([margin.top, margin.top + height]).domain(dataset.map((d) => d.title)).padding(0.1);
+    xAreaScale = d3.scaleTime().domain(d3.extent(areaData, (d) => d.key)).range([margin.left, margin.left + width]);
+    yAreaScale = d3.scaleLinear().domain([0, d3.max(areaData, (d) => d.value.totalGross)]).range([margin.top + height / 2, margin.top]);
+    yAreaAdjScale = d3.scaleLinear().domain([0, d3.max(areaData, (d) => d.value.adjGross)]).range([margin.top + height / 2, margin.top]);
 }
 
 function recalc_xGrossIncScale(num){
@@ -308,7 +504,326 @@ function drawInitial(){
   //     .attr('fill', 'black')
   //     .attr('text-anchor', 'middle')
 
+  // ================================== VISUALIZATION 3 ================================== //
+  let xTimeAxis = d3.axisBottom(xAreaScale);
+
+  let xTimeAxisG = svg
+    .append("g")
+    .call(xTimeAxis)
+    .attr("class", "area-x")
+    .attr("opacity", 0)
+    .attr("transform", `translate(0, ${margin.top + 700})`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 1)
+    .attr("stroke-dasharray", 1.5);
+
+  let yIncAxis = d3
+    .axisLeft(yAreaAdjScale)
+    .ticks(5)
+    .tickSize([width])
+    .tickFormat(function (d) {
+      return "$" + d / 1000000000 + " billion";
+    });
+
+  let yIncAxisGroup = svg
+    .append("g")
+    .call(yIncAxis)
+    .attr("class", "area-y")
+    .attr("opacity", 0)
+    .attr("transform", `translate(${margin.left + width}, 275)`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
   
+  const areaGenerator = d3
+    .area()
+    .x((d) => xAreaScale(d.key))
+    .y0(yAreaAdjScale(0))
+    .y1((d) => yAreaAdjScale(d.value.totalGross))
+    .curve(d3.curveBasis);
+
+  svg
+    .append("g")
+    .append("path")
+    .attr("class", "area-path")
+    .attr("transform", `translate(0, 275)`)
+    // .attr("stroke", "steelblue")
+    .attr("fill", "#cce5df")
+    .attr("stroke", "#69b3a2")
+    .attr("stroke-width", 1.5)
+    .attr("opacity", 0)
+    .attr("d", areaGenerator(areaData));
+
+
+  // ================================== VISUALIZATION 4: Adjusted Gross Income ================================== //
+  let yAdjIncAxis = d3
+    .axisLeft(yAreaAdjScale)
+    .ticks(5)
+    .tickSize([width])
+    .tickFormat(function (d) {
+      return "$" + d / 1000000000 + " billion";
+    });
+
+  let yAdjIncAxisGroup = svg
+    .append("g")
+    .call(yAdjIncAxis)
+    .attr("class", "adj-area-y")
+    .attr("opacity", 0)
+    .attr("transform", `translate(${margin.left + width}, 275)`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
+
+  const adjAreaGenerator = d3
+    .area()
+    .x((d) => xAreaScale(d.key))
+    .y0(yAreaAdjScale(0))
+    .y1((d) => yAreaAdjScale(d.value.adjGross))
+    .curve(d3.curveBasis);
+
+  svg
+    .append("g")
+    .append("path")
+    .attr("class", "adj-area-path")
+    .attr("transform", `translate(0, 275)`)
+    // .attr("stroke", "steelblue")
+    .attr("fill", "#f0dfb4")
+    .attr("stroke", "#d1b05a")
+    .attr("stroke-width", 1.5)
+    .attr("opacity", 0)
+    .attr("d", adjAreaGenerator(areaData));
+
+  // ================================== VISUALIZATION 6: Line Charts ================================== //
+  var xLineScale = d3
+    .scaleTime()
+    .domain(d3.extent(areaData, (d) => d.key))
+    .range([margin.left, margin.left + width]);
+
+  var yLineScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(areaData, (d) => d.value.adjGross)])
+    .range([margin.top + height / 2, margin.top]);
+
+  let xLineAxis = d3.axisBottom(xLineScale);
+  let yLineAxis = d3
+    .axisLeft(yLineScale)
+    .tickSize([width])
+    .tickFormat(function (d) {
+      return "$" + d / 1000000000 + " billion";
+    });
+
+  let xLineAxisG = svg
+    .append("g")
+    .call(xLineAxis)
+    .attr("class", "line-x")
+    .attr("opacity", 0)
+    .attr("transform", `translate(0, ${margin.top + 700})`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 1)
+    .attr("stroke-dasharray", 1.5);
+
+  let yLineAxisG = svg
+    .append("g")
+    .call(yLineAxis)
+    .attr("class", "line-y")
+    .attr("opacity", 0)
+    .attr("transform", `translate(${margin.left + width}, 275)`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
+
+  const lineGenerator = d3
+    .line()
+    .x((d) => xLineScale(d.key))
+    .y((d) => yLineScale(d.value.Musical.adjGross))
+    .curve(d3.curveBasis);
+
+  var genreLine = svg
+    .append("g")
+    .append("path")
+    .attr("class", "line-path")
+    .attr("transform", `translate(0, 275)`)
+    // .attr("stroke", "steelblue")
+    .attr("fill", "none")
+    .attr("stroke", "#ffcc00")
+    .attr("stroke-width", 3.5)
+    .attr("opacity", 0)
+    .attr("d", lineGenerator(areaData));
+
+
+  // CREATE THE SELECTION OPTIONS
+  d3.select("#selectButton")
+    .selectAll("myOptions")
+    .data(categories)
+    .enter()
+    .append("option")
+    .text(function (d) {
+      return d;
+    })
+    .attr("value", (d) => d);
+
+  function update(selectedGroup) {
+    console.log("Updating", selectedGroup);
+    console.log("area data", areaData);
+    xLineScale = d3
+      .scaleTime()
+      .domain(d3.extent(areaData, (d) => d.key))
+      .range([margin.left, margin.left + width]);
+    yLineScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(areaData, (d) => d.value[selectedGroup].adjGross)])
+      .range([margin.top + height / 2, margin.top]);
+    xLineAxis = d3.axisBottom(xLineScale);
+    yLineAxis = d3
+      .axisLeft(yLineScale)
+      .tickSize([width])
+      .tickFormat(function (d) {
+        return "$" + d / 1000000000 + " billion";
+      });
+
+    xLineAxisG.transition().duration(1000).call(xLineAxis);
+
+    yLineAxisG.transition().duration(1000).call(yLineAxis);
+
+    genreLine
+      .datum(areaData)
+      .transition()
+      .duration(1000)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x((d) => xLineScale(d.key))
+          .y((d) => yLineScale(d.value[selectedGroup].adjGross))
+          .curve(d3.curveBasis)
+      )
+      .attr("stroke", (d) => colors[genreMap[selectedGroup]]);
+  }
+
+  d3.select("#selectButton").on("change", function (d) {
+    var selectedOption = d3.select(this).property("value");
+    update(selectedOption);
+  });
+
+  // ================================== VISUALIZATION 7: Line Charts Num Movies By Genre ================================== //
+  let xNumLineScale = d3
+    .scaleTime()
+    .domain(d3.extent(areaData, (d) => d.key))
+    .range([margin.left, margin.left + width]);
+
+  let yNumLineScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(areaData, (d) => d.value.total)])
+    .range([margin.top + height / 2, margin.top]);
+
+  let xNumLineAxis = d3.axisBottom(xNumLineScale);
+  let yAxisTicks = yNumLineScale
+    .ticks()
+    .filter((tick) => Number.isInteger(tick));
+  let yNumLineAxis = d3
+    .axisLeft(yNumLineScale)
+    .tickSize([width])
+    .tickValues(yAxisTicks)
+    .tickFormat(d3.format("d"));
+
+  let xNumLineAxisG = svg
+    .append("g")
+    .call(xNumLineAxis)
+    .attr("class", "num-line-x")
+    .attr("opacity", 0)
+    .attr("transform", `translate(0, ${margin.top + 700})`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 1)
+    .attr("stroke-dasharray", 1.5);
+
+  let yNumLineAxisG = svg
+    .append("g")
+    .call(yNumLineAxis)
+    .attr("class", "num-line-y")
+    .attr("opacity", 0)
+    .attr("transform", `translate(${margin.left + width}, 275)`)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
+
+  const numLineGenerator = d3
+    .line()
+    .x((d) => xNumLineScale(d.key))
+    .y((d) => yNumLineScale(d.value.total));
+  // .curve(d3.curveBasis)
+
+  var numLine = svg
+    .append("g")
+    .append("path")
+    .attr("class", "num-line-path")
+    .attr("transform", `translate(0, 275)`)
+    // .attr("stroke", "steelblue")
+    .attr("fill", "none")
+    .attr("stroke", "#ffcc00")
+    .attr("stroke-width", 1.5)
+    .attr("opacity", 0)
+    .attr("d", numLineGenerator(areaData));
+
+  var options = ["All", ...categories];
+
+  d3.select("#selectNumButton")
+    .selectAll("myOptions")
+    .data(options)
+    .enter()
+    .append("option")
+    .text(function (d) {
+      return d;
+    })
+    .attr("value", (d) => d);
+
+  function updateNumChart(selectedGroup) {
+    // console.log("Updating", selectedGroup);
+    // console.log("area data", areaData);
+    xNumLineScale = d3
+      .scaleTime()
+      .domain(d3.extent(areaData, (d) => d.key))
+      .range([margin.left, margin.left + width]);
+    yNumLineScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(areaData, (d) => d.value[selectedGroup].total)])
+      .range([margin.top + height / 2, margin.top]);
+    yAxisTicks = yNumLineScale.ticks().filter((tick) => Number.isInteger(tick));
+    xNumLineAxis = d3.axisBottom(xNumLineScale);
+    yNumLineAxis = d3
+      .axisLeft(yNumLineScale)
+      .tickSize([width])
+      .tickValues(yAxisTicks)
+      .tickFormat(d3.format("d"));
+
+    xNumLineAxisG.transition().duration(1000).call(xNumLineAxis);
+
+    yNumLineAxisG.transition().duration(1000).call(yNumLineAxis);
+
+    numLine
+      .datum(areaData)
+      .transition()
+      .duration(1000)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x((d) => xNumLineScale(d.key))
+          .y((d) => yNumLineScale(d.value[selectedGroup].total))
+      )
+      .attr("stroke", (d) => colors[genreMap[selectedGroup]]);
+  }
+
+  d3.select("#selectNumButton").on("change", function (d) {
+    var selectedOption = d3.select(this).property("value");
+    updateNumChart(selectedOption);
+  });
 }
 
 function mouseOver(d, i) {
@@ -353,7 +868,7 @@ function mouseOut(d, i) {
 
 function clean(chartType){
   let svg = d3.select("#vis").select("svg");
-  if(chartType !== "isDotPlot"){
+  if(chartType !== "one"){
     svg.select(".x-dot-axis").transition().attr("opacity", 0);
     svg
       .selectAll(".small-text")
@@ -362,6 +877,24 @@ function clean(chartType){
       .attr("x", -200);
     svg.selectAll("circle").transition().duration(1000).delay((d, i) => i * 2).attr('cx', width + 500).attr('cy', height/2).attr("opacity", 0)
     simulation.stop();
+  }
+  if(chartType !== "two"){
+    
+  }
+  if(chartType !=="three"){
+    svg.select(".area-x").transition().attr("opacity", 0);
+    svg.select(".area-y").transition().attr("opacity", 0);
+    svg.select(".area-path").transition().attr("opacity", 0);
+  }
+  if(chartType !=="four"){
+    svg.select(".area-x").transition().attr("opacity", 0);
+    svg.select(".adj-area-y").transition().attr("opacity", 0);
+    svg.select(".adj-area-path").transition().attr("opacity", 0);
+  }
+  if(chartType !== "six"){
+    svg.select(".line-x").transition().attr("opacity", 0);
+    svg.select(".line-y").transition().attr("opacity", 0);
+    svg.select(".line-path").transition().attr("opacity", 0);
   }
 }
 
@@ -376,7 +909,7 @@ function draw1(){
     .attr("width", 1000)
     .attr("height", 950);
 
-    clean("isDotPlot");
+    clean("one");
 
     d3.select(".categoryLegend").transition().remove();
 
@@ -406,7 +939,7 @@ function draw1(){
 function draw2(){
     console.log("Drawing figure 2");
     currentStep = 2;
-    clean("second");
+    clean("two");
     let svg = d3.select("#vis").select("svg");
 
     
@@ -473,35 +1006,67 @@ function draw2(){
   //     .attr('x', d => categoriesXY[d][0] + 200)
   //     .attr('y', d => categoriesXY[d][1] + 50)
   //     .attr('opacity', 1)
-  // simulation.stop();
 }
 
 function draw3(){
+  let svg = d3.select("#vis").select("svg");
     console.log("Drawing figure 3");
     currentStep = 3;
-    clean("third")
+    clean("three")
 
-    
+    svg.select(".area-path").transition().duration(1400).attr("opacity", 0.7);
+    svg.select(".area-x").transition().duration(1400).attr("opacity", 1);
+    svg.select(".area-y").transition().duration(1400).attr("opacity", 1);
 }
 
 function draw4(){
     console.log("Drawing figure 4");
     currentStep = 4;
+    clean("four");
+
+  let svg = d3.select("#vis").select("svg");
+
+  svg.select(".adj-area-path").transition().duration(700).attr("opacity", 0.7);
+  svg.select(".area-x").transition().duration(700).attr("opacity", 1);
+  svg.select(".adj-area-y").transition().duration(700).attr("opacity", 1);
 }
 
 function draw5(){
-    console.log("Drawing figure 5");
-    currentStep = 2;
+  console.log("Drawing figure 5");
+  currentStep = 5;
+  clean("five");
+  let svg = d3.select("#vis").select("svg");
+
+  svg.select(".adj-area-path").transition().duration(700).attr("opacity", 0.5);
+  svg.select(".area-path").transition().duration(700).attr("opacity", 1);
+  svg.select(".area-x").transition().duration(700).attr("opacity", 1);
+  svg.select(".adj-area-y").transition().duration(700).attr("opacity", 1);
 }
 
 function draw6(){
     console.log("Drawing figure 6");
-    currentStep = 2;
+    currentStep = 6;
+    clean("six");
+
+  let svg = d3.select("#vis").select("svg");
+
+  svg.select(".line-x").transition().duration(700).attr("opacity", 1);
+  svg.select(".line-y").transition().duration(700).attr("opacity", 1);
+  svg.select(".line-path").transition().duration(700).attr("opacity", 1);
+
 }
 
 function draw7(){
-    console.log("Drawing figure 7");
-    currentStep = 2;
+  console.log("Drawing figure 7");
+  currentStep = 7;
+
+  clean("seven");
+
+  let svg = d3.select("#vis").select("svg");
+
+  svg.select(".num-line-x").transition().duration(700).attr("opacity", 1);
+  svg.select(".num-line-y").transition().duration(700).attr("opacity", 1);
+  svg.select(".num-line-path").transition().duration(700).attr("opacity", 1);
 }
 
 function draw8(){
