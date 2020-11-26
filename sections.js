@@ -995,7 +995,15 @@ function mouseOut(d, i) {
 }
 
 function clean(chartType){
+  
   let svg = d3.select("#vis").select("svg");
+  svg.select(".movieCircle").transition().duration(1000).attr("cx", width + 1000).remove();
+    svg.select(".movieText").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
+    svg.select(".movieGenre").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
+    svg.select(".releaseDate").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
+    svg.select(".rating").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
+    svg.select(".totalGross").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
+    svg.select(".adjGross").transition().duration(1000).attr('x', width + 1000).attr('opacity', 0).remove();
   if(chartType !== "one"){
     svg.select(".x-dot-axis").transition().attr("opacity", 0);
     svg
@@ -1005,6 +1013,8 @@ function clean(chartType){
       .attr("x", -200);
     svg.selectAll("circle").transition().duration(1000).delay((d, i) => i * 2).attr('cx', width + 500).attr('cy', height/2).attr("opacity", 0)
     simulation.stop();
+
+    
   }
   if(chartType !== "two"){
     
