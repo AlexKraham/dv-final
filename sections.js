@@ -387,9 +387,12 @@ function drawInitial(){
     updateDotPlot(selectedOption);
   });
 
+  let movieNames = dataset.slice();
+  movieNames.push({title: ""})
+  console.log(movieNames);
   d3.select("#selectMovieName")
     .selectAll("nameOptions")
-    .data(dataset.slice().sort((a,b) => a.title < b.title ? -1 : 1))
+    .data(movieNames.sort((a,b) => a.title < b.title ? -1 : 1))
     .enter()
     .append("option")
     .text(function (d) { return d.title})
@@ -402,6 +405,13 @@ function drawInitial(){
     
 
   function updateDotPlot(num){
+    svg.select(".movieText").transition().duration(500).attr('opacity', 0).remove();
+    svg.select(".movieGenre").transition().duration(500).attr('opacity', 0).remove();
+    svg.select(".releaseDate").transition().duration(500).attr('opacity', 0).remove();
+    svg.select(".rating").transition().duration(500).attr('opacity', 0).remove();
+    svg.select(".totalGross").transition().duration(500).attr('opacity', 0).remove();
+    svg.select(".adjGross").transition().duration(500).attr('opacity', 0).remove();
+
     topMoviesNum = num;
     xGrossIncScale = recalc_xGrossIncScale(num);
     yDotScale = recaclc_yDotScale(num);
@@ -412,7 +422,7 @@ function drawInitial(){
       .tickFormat(function (d) {
         return "$" + d / 1000000 + " million";
       });
-    xDotAxisG.transition().duration(1000).call(xDotAxis);
+    xDotAxisG.transition().duration(1000).call(xDotAxis).attr("opacity", 1);
 
     svg.selectAll(".small-text")
       .remove();
@@ -456,7 +466,42 @@ function drawInitial(){
   }
 
   function showMovieInformation(selectedOption){
+    svg.select(".movieCircle").remove();
+    svg.select(".movieText").remove();
+    svg.select(".movieGenre").remove();
+    svg.select(".releaseDate").remove();
+    svg.select(".rating").remove();
+    svg.select(".totalGross").remove();
+    svg.select(".adjGross").remove();
     console.log(selectedOption);
+    clean("none");
+    var movieInfo = dataset.filter(d => d.title === selectedOption)[0];
+
+    svg.append('circle').attr("class", "movieCircle").attr('cx', margin.left + width/2).attr("cy", margin.top + height/2).attr('fill', '#3F4531').attr('r', 0).on('mouseover', function(){})
+    svg.append("text").attr("class", "movieText").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text(movieInfo.title).style("text-anchor", "middle").attr("opacity", 0)
+    svg.append("text").attr("class", "movieGenre").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text("Genre: " + movieInfo.genre).style("text-anchor", "middle").attr("opacity", 0)
+    svg.append("text").attr("class", "releaseDate").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text("Rating: " + movieInfo.rating).style("text-anchor", "middle").attr("opacity", 0)
+    svg.append("text").attr("class", "rating").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text("Release Date: " + movieInfo.releaseDate).style("text-anchor", "middle").attr("opacity", 0)
+    svg.append("text").attr("class", "totalGross").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text("Total Gross: $" + d3.format(",")(movieInfo.totalGross)).style("text-anchor", "middle").attr("opacity", 0)
+    svg.append("text").attr("class", "adjGross").attr("x", margin.left + width/2).attr("y", margin.top + height /2).text("Adjusted Gross (For Inflation): $" + d3.format(",")(movieInfo.adjGross)).style("text-anchor", "middle").attr("opacity", 0)
+    // svg.append("text").attr("class", "movieText").attr("x", margin.left + width/2).attr("y", margin.top + height /2 + 40).text(movieInfo.genre).style("text-anchor", "middle").attr("opacity", 0)
+
+
+    svg.select(".movieCircle").transition().duration(1000).attr('cx', margin.left + width/2).attr("cy", margin.top + height/2).attr("r", 400).attr("opacity", 0.8)
+
+
+    svg.select(".movieText").transition().duration(1000).attr('opacity', 1).attr('y', margin.top + height /3).style("font-size", "40px").style("font-family", "DM Serif Display").attr("fill", "#d7dbd7")
+    svg.select(".movieGenre").transition().duration(1000).attr('opacity', 1).attr("y", margin.top + height/3 + 100).style("font-size", "30px").style("font-family", "Libre Franklin").attr("fill", "#ffffff")
+    svg.select(".releaseDate").transition().duration(1000).attr('opacity', 1).attr("y", margin.top + height/3 + 140).style("font-size", "30px").style("font-family", "Libre Franklin").attr("fill", "#ffffff")
+    svg.select(".rating").transition().duration(1000).attr('opacity', 1).attr("y", margin.top + height/3 + 180).style("font-size", "30px").style("font-family", "Libre Franklin").attr("fill", "#ffffff")
+    svg.select(".totalGross").transition().duration(1000).attr('opacity', 1).attr("y", margin.top + height/3 + 220).style("font-size", "30px").style("font-family", "Libre Franklin").attr("fill", "#ffffff")
+    svg.select(".adjGross").transition().duration(1000).attr('opacity', 1).attr("y", margin.top + height/3 + 260).style("font-size", "30px").style("font-family", "Libre Franklin").attr("fill", "#ffffff")
+
+    
+  
+    
+    console.log("Movie", movieInfo)
+   
   }
 
   // ================================== VISUALIZATION 2 ================================== //
@@ -926,11 +971,11 @@ function mouseOver(d, i) {
       .style("display", "inline-block").html(`<strong>Movie:</strong> ${
       d.title
     } 
-              <br> <strong>Gross Income:</strong> $${d3.format(",.2r")(
+              <br> <strong>Gross Income:</strong> $${d3.format(",")(
                 d.totalGross
               )} 
               <br> <strong>Adjusted Gross Income:</strong> $${d3.format(
-                ",.2r"
+                ","
               )(d.adjGross)}
               <br> <strong>Release Date:</strong> ${d.releaseDate}
               <br> <strong>Genre:</strong> ${d.genre}
