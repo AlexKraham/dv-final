@@ -19,7 +19,7 @@ body {
     margin-right: 50px;
 }
 
-.selectMovies, .searchName, .selectGenre {
+.selectMovies, .searchName, .selectGenre, .select {
     color: #499167;
     align-items: center;
     text-align: center;

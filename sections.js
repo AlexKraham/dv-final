@@ -81,24 +81,35 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
 
 function initGenreData(){
   genreData = [
-    { genre: "Musical", income: 0 },
-    { genre: "Adventure", income: 0 },
-    { genre: "Drama", income: 0 },
-    { genre: "Comedy", income: 0 },
-    { genre: "Action", income: 0 },
-    { genre: "Horror", income: 0 },
-    { genre: "Romantic Comedy", income: 0 },
-    { genre: "Thriller/Suspense", income: 0 },
-    { genre: "Western", income: 0 },
-    { genre: "Black Comedy", income: 0 },
-    { genre: "Concert/Performance", income: 0 },
-    { genre: "Documentary", income: 0 },
-    { genre: "Missing", income: 0 },
+    { genre: "Musical", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Adventure", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Drama", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: ""},
+    { genre: "Comedy", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Action", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Horror", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Romantic Comedy", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Thriller/Suspense", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Western", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Black Comedy", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Concert/Performance", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Documentary", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
+    { genre: "Missing", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
   ];
 
   dataset.forEach(function (d) {
     let index = genreMap[d.genre ?? "Missing"];
+    console.log("D", d)
     genreData[index].income += d.totalGross;
+    genreData[index].adjGross += d.adjGross;
+    if(d.totalGross > genreData[index].top){
+      genreData[index].top = d.totalGross;
+      genreData[index].topTitle = d.title;
+    }
+    if(d.totalGross < genreData[index].bot){
+      genreData[index].bot = d.totalGross;
+      genreData[index].botTitle = d.title;
+    }
+    // genreData[index]
   });
   genreData.sort((a, b) => (a.income > b.income ? -1 : 1));
 }
@@ -800,7 +811,7 @@ function drawInitial(){
     .attr("stroke", "#ffcc00")
     .attr("stroke-width", 2.5)
     .attr("opacity", 0)
-    .attr("d", numLineGenerator(areaData));
+    .attr("d", numLineGenerator(areaData))
 
   var options = ["All", ...categories];
 
@@ -823,7 +834,7 @@ function drawInitial(){
       .range([margin.left, margin.left + width]);
     yNumLineScale = d3
       .scaleLinear()
-      .domain([0, d3.max(areaData, (d) => d.value[selectedGroup].total)])
+      .domain([0, d3.max(areaData, (d) => selectedGroup == "All" ? d.value.total : d.value[selectedGroup].total)])
       .range([margin.top + height / 2, margin.top]);
     yAxisTicks = yNumLineScale.ticks().filter((tick) => Number.isInteger(tick));
     xNumLineAxis = d3.axisBottom(xNumLineScale);
@@ -846,9 +857,9 @@ function drawInitial(){
         d3
           .line()
           .x((d) => xNumLineScale(d.key))
-          .y((d) => yNumLineScale(d.value[selectedGroup].total))
+          .y((d) => yNumLineScale(selectedGroup == "All" ?  d.value.total : d.value[selectedGroup].total))
       )
-      .attr("stroke", (d) => colors[genreMap[selectedGroup]]);
+      .attr("stroke", (d) => selectedGroup == "All" ? 'black' : colors[genreMap[selectedGroup]]);
   }
 
   d3.select("#selectNumButton").on("change", function (d) {
@@ -857,7 +868,7 @@ function drawInitial(){
   });
 
   // // ================================== VISUALIZATION 8: Bar Chart ================================== //
-  console.log("GENRE", genreData);
+  // console.log("GENRE", genreData);
   xGenreScale = d3
     .scaleLinear()
     .domain(d3.extent(genreData, (d) => d.income))
@@ -899,14 +910,14 @@ function drawInitial(){
     .attr("stroke-opacity", 0.2)
     .attr("stroke-dasharray", 2.5);
 
-  svg
+  let genreRects = svg
     .selectAll("myRect")
     .data(genreData)
     .enter()
     .append("rect")
     .attr("class", "genre-rects")
     .attr("opacity", 0)
-    .attr("x", xGenreScale(0))
+    .attr("x",  width + 1000)
     .attr("y", function (d) {
       // console.log("doing", d.genre)
       return yGenreScale(d.genre) - 100;
@@ -918,6 +929,105 @@ function drawInitial(){
     .attr("height", yGenreScale.bandwidth())
     .attr("fill", function (d) {
       return colors[genreMap[d.genre]];
+    })
+    .on("mouseover", mouseOverBarChart)
+    .on("mouseout", mouseOutBarChart);
+
+
+    function mouseOverBarChart(d, i) {
+      // console.log("MOSE OVER")
+    
+        d3.select(this)
+          .transition("mouseover")
+          .duration(100)
+          .attr("opacity", 1)
+          .attr("stroke-width", 2)
+          .attr("stroke", "black");
+    
+        d3
+          .select("#tooltip")
+          .style("left", d3.event.pageX + 10 + "px")
+          .style("top", d3.event.pageY - 25 + "px")
+          .style("display", "inline-block").html(`<strong>Genre:</strong> ${
+          d.genre
+        } 
+                  <br> <strong>Top Grossing Movie:</strong> ${d.topTitle}
+                  <br> <strong>Total Gross:</strong> $${d3.format(",")(
+                    d.top
+                  )} 
+                  <br> <strong>Bottom Grossing Movie:</strong> ${d.botTitle}
+                  <br> <strong>Total Gross:</strong> $${d3.format(",")(
+                    d.bot
+                  )} 
+                `);
+      
+    }
+    
+    function mouseOutBarChart(d, i) {
+    
+        d3.select("#tooltip").style("display", "none");
+    
+        d3.select(this)
+          .transition("mouseout")
+          .duration(100)
+          .attr("opacity", 0.8)
+          .attr("stroke-width", 0);
+    }
+
+    let barChartOptions = ["Total Gross Income", "Adjusted Gross (For Inflation)"];
+
+    d3.select("#selectBarChart")
+    .selectAll("myBarChartOptions")
+    .data(barChartOptions)
+    .enter()
+    .append("option")
+    .text(function (d) {
+      return d;
+    })
+    .attr("value", (d) => d);
+
+    d3.select("#selectBarChart").on("change", function (d) {
+      var selectedOption = d3.select(this).property("value");
+      if(selectedOption == "Total Gross Income"){
+        xGenreScale = d3
+          .scaleLinear()
+          .domain(d3.extent(genreData, (d) => d.income))
+          .range([margin.left, margin.left + width]);
+
+        xGenreAxis = d3.axisBottom(xGenreScale)
+          .tickSize(-height + 250)
+          .tickFormat(function (d) {
+              return "$" + d / 1000000000 + " bil.";
+          });;
+
+        xGenreAxisG.transition().duration(1000).call(xGenreAxis);
+        genreRects.transition().duration(1000)
+                  .attr("x", xGenreScale(0))
+                  .attr("width", function (d) {
+                      return xGenreScale(d.income);
+                  })
+
+      } else {
+        xGenreScale = d3
+          .scaleLinear()
+          .domain(d3.extent(genreData, (d) => d.adjGross))
+          .range([margin.left, margin.left + width]);
+
+        xGenreAxis = d3.axisBottom(xGenreScale)
+                      .tickSize(-height + 250)
+                      .tickFormat(function (d) {
+                          return "$" + d / 1000000000 + " bil.";
+                      });;
+
+        xGenreAxisG.transition().duration(1000).call(xGenreAxis);
+
+
+        genreRects.transition().duration(1000)
+                  .attr("x", xGenreScale(0))
+                  .attr("width", function (d) {
+                      return xGenreScale(d.adjGross);
+                  })
+      }
     });
 
   //   // ============================= CONCLUSION VISUALIZATIONS ============================= //
@@ -1045,10 +1155,14 @@ function clean(chartType){
     svg
       .selectAll(".genre-rects")
       .transition()
+      .duration(1000)
+      .delay((d, i) => i * 100 )
       .attr("opacity", 0)
       .attr("width", function (d) {
         return xGenreScale(0);
-      });
+      })
+      .attr('x', width+1000)
+      
   }
   if(chartType !== "nine"){
     svg.select(".conclusion-img").transition().attr('x', width + 1000).attr('y', height / 2).attr("opacity", 0);
@@ -1216,15 +1330,16 @@ function draw6(){
 
 function draw7(){
   console.log("Drawing figure 7");
-  currentStep = 7;
+  
 
   clean("seven");
 
   let svg = d3.select("#vis").select("svg");
 
-  svg.select(".num-line-x").transition().duration(700).attr("opacity", 1);
-  svg.select(".num-line-y").transition().duration(700).attr("opacity", 1);
-  svg.select(".num-line-path").transition().duration(700).attr("opacity", 1);
+  svg.select(".num-line-x").transition().duration(700).delay(currentStep === 8 ? 1400 : 0).attr("opacity", 1);
+  svg.select(".num-line-y").transition().duration(700).delay(currentStep === 8 ? 1400 : 0).attr("opacity", 1);
+  svg.select(".num-line-path").transition().duration(700).delay(currentStep === 8 ? 1800 : 0).attr("opacity", 1);
+  currentStep = 7;
 }
 
 function draw8(){
@@ -1237,7 +1352,7 @@ function draw8(){
   clean("eight");
 
   svg.select(".genre-chart-x").transition().duration(1400).attr("opacity", 1);
-  svg.select(".genre-chart-y").transition().duration(1400).attr("opacity", 1);
+  svg.select(".genre-chart-y").transition().duration(1400).delay(2000).attr("opacity", 1);
   svg
     .selectAll(".genre-rects")
     .transition()
@@ -1255,7 +1370,7 @@ function draw9(){
   clean("none");
   let svg = d3.select("#vis").select("svg");
   console.log("drawing 9");
-  svg.select(".conclusion-img").transition().duration(700).attr("x", 0).attr("y", 0).attr("opacity", 1);
+  svg.select(".conclusion-img").transition().delay(1200).duration(700).attr("x", 0).attr("y", 0).attr("opacity", 1);
   document.body.style.backgroundColor = "#CCE7D6";
 }
 
