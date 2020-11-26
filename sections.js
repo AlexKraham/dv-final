@@ -71,6 +71,8 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
     return d.genre === "" ? { ...d, genre: "Missing" } : d;
   });
 
+  initGenreData();
+
   initAreaData();
 
   createScales();
@@ -363,23 +365,7 @@ function drawInitial(){
       .attr("font-size", 10)
       .attr("text-anchor", "end");
 
-  // create nodes/circles
-  nodes = svg
-            .selectAll('circle')
-            .data(dataset)
-            .enter()
-            .append('circle')
-                .attr('fill', '#595959')
-                .attr('r', 4)
-                .attr('cx', (d, i) => xGrossIncScale(d.totalGross))
-                .attr('cy', (d, i) => yDotScale(d.title))
-                .attr('opacity', 0.8);  
   
-  updateDotPlot(70);
-  
-  // Add mouseover and mouseout events for all circles
-  // Changes opacity and adds border
-  svg.selectAll("circle").on("mouseover", mouseOver).on("mouseout", mouseOut);
 
   var dotOptions = [10,20,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,550,579];
 
@@ -651,7 +637,7 @@ function drawInitial(){
     // .attr("stroke", "steelblue")
     .attr("fill", "none")
     .attr("stroke", "#ffcc00")
-    .attr("stroke-width", 3.5)
+    .attr("stroke-width", 2.5)
     .attr("opacity", 0)
     .attr("d", lineGenerator(areaData));
 
@@ -767,7 +753,7 @@ function drawInitial(){
     // .attr("stroke", "steelblue")
     .attr("fill", "none")
     .attr("stroke", "#ffcc00")
-    .attr("stroke-width", 1.5)
+    .attr("stroke-width", 2.5)
     .attr("opacity", 0)
     .attr("d", numLineGenerator(areaData));
 
@@ -824,6 +810,103 @@ function drawInitial(){
     var selectedOption = d3.select(this).property("value");
     updateNumChart(selectedOption);
   });
+
+  // // ================================== VISUALIZATION 8: Bar Chart ================================== //
+  console.log("GENRE", genreData);
+  xGenreScale = d3
+    .scaleLinear()
+    .domain(d3.extent(genreData, (d) => d.income))
+    .range([margin.left, margin.left + width]);
+  yGenreScale = d3
+    .scaleBand()
+    .range([margin.top + 250, margin.top + height])
+    .domain(genreData.map((d) => d.genre))
+    .padding(0.1);
+
+  let xGenreAxis = d3
+    .axisBottom(xGenreScale)
+    .tickSize(-height + 250)
+    .tickFormat(function (d) {
+      return "$" + d / 1000000000 + " billion";
+    });
+
+  let xGenreAxisG = svg
+    .append("g")
+    .attr("class", "genre-chart-x")
+    .attr("transform", `translate(0, ${height + margin.top - 100})`)
+    .attr("opacity", 0)
+    .call(xGenreAxis)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
+
+  let yGenreAxis = d3.axisLeft(yGenreScale);
+
+  let yGenreAxisG = svg
+    .append("g")
+    .attr("class", "genre-chart-y")
+    .attr("opacity", 0)
+    .attr("transform", `translate(${margin.left}, -100)`)
+    .call(yGenreAxis)
+    .call((g) => g.select(".domain").remove())
+    .call((g) => g.selectAll(".tick line"))
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", 2.5);
+
+  svg
+    .selectAll("myRect")
+    .data(genreData)
+    .enter()
+    .append("rect")
+    .attr("class", "genre-rects")
+    .attr("opacity", 0)
+    .attr("x", xGenreScale(0))
+    .attr("y", function (d) {
+      // console.log("doing", d.genre)
+      return yGenreScale(d.genre) - 100;
+    })
+    .attr("width", function (d) {
+      // console.log("wow", yGenreScale(100000));
+      return xGenreScale(0);
+    })
+    .attr("height", yGenreScale.bandwidth())
+    .attr("fill", function (d) {
+      return colors[genreMap[d.genre]];
+    });
+
+  //   // ============================= CONCLUSION VISUALIZATIONS ============================= //
+  svg
+  .append("g")
+  .append("image")
+  .attr("class", "conclusion-img")
+  .attr(
+    "xlink:href",
+    "https://drive.google.com/uc?export=view&id=1_ZkAlcC23pSgoYiy42PmdNw6I_XlTc0Z"
+  )
+  .attr("width", 1000)
+  .attr("height", 1000)
+  .attr("x", width + 1000)
+  .attr("y", height / 2)
+  .attr("opacity", 0);
+
+  // create nodes/circles
+  nodes = svg
+            .selectAll('circle')
+            .data(dataset)
+            .enter()
+            .append('circle')
+                .attr('fill', '#595959')
+                .attr('r', 4)
+                .attr('cx', (d, i) => xGrossIncScale(d.totalGross))
+                .attr('cy', (d, i) => yDotScale(d.title))
+                .attr('opacity', 0.8);  
+  
+  updateDotPlot(70);
+  
+  // Add mouseover and mouseout events for all circles
+  // Changes opacity and adds border
+  svg.selectAll("circle").on("mouseover", mouseOver).on("mouseout", mouseOut);
 }
 
 function mouseOver(d, i) {
@@ -895,6 +978,26 @@ function clean(chartType){
     svg.select(".line-x").transition().attr("opacity", 0);
     svg.select(".line-y").transition().attr("opacity", 0);
     svg.select(".line-path").transition().attr("opacity", 0);
+  }
+  if(chartType !== "seven"){
+    svg.select(".num-line-x").transition().attr("opacity", 0);
+    svg.select(".num-line-y").transition().attr("opacity", 0);
+    svg.select(".num-line-path").transition().attr("opacity", 0);
+  }
+  if(chartType !== "eight"){
+    svg.select(".genre-chart-x").transition().attr("opacity", 0);
+    svg.select(".genre-chart-y").transition().attr("opacity", 0);
+    svg
+      .selectAll(".genre-rects")
+      .transition()
+      .attr("opacity", 0)
+      .attr("width", function (d) {
+        return xGenreScale(0);
+      });
+  }
+  if(chartType !== "nine"){
+    svg.select(".conclusion-img").transition().attr('x', width + 1000).attr('y', height / 2).attr("opacity", 0);
+    document.body.style.backgroundColor = "#F5F4F1";
   }
 }
 
@@ -1070,13 +1173,35 @@ function draw7(){
 }
 
 function draw8(){
-    console.log("Drawing figure 8");
-    currentStep = 2;
+
+
+  let svg = d3.select("#vis").select("svg");
+  currentStep = 8;
+  console.log("drawing 8");
+
+  clean("eight");
+
+  svg.select(".genre-chart-x").transition().duration(1400).attr("opacity", 1);
+  svg.select(".genre-chart-y").transition().duration(1400).attr("opacity", 1);
+  svg
+    .selectAll(".genre-rects")
+    .transition()
+    .duration(1400)
+    .attr("width", (d) => xGenreScale(d.income))
+    .attr("x", (d) => xGenreScale(0))
+    .attr("opacity", 1)
+    .delay(function (d, i) {
+      return i * 100;
+    });
 }
 
 function draw9(){
-    console.log("Drawing figure 9");
-    currentStep = 2;
+  currentStep = 9;
+  clean("none");
+  let svg = d3.select("#vis").select("svg");
+  console.log("drawing 9");
+  svg.select(".conclusion-img").transition().duration(700).attr("x", 0).attr("y", 0).attr("opacity", 1);
+  document.body.style.backgroundColor = "#CCE7D6";
 }
 
 //Array of all the graph functions
