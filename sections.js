@@ -50,6 +50,15 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
         adjGross: Number(d["inflation_adjusted_gross"].replace(/[^0-9\.-]+/g, "")),
       };
 }).then((data) => {
+  // d3.csv("data/disney-voice-actors.csv", function(d){
+  //   return {
+  //     character: d['character'],
+  //     actor: d['voice-actor'],
+  //     movie: d['movie']
+  //   }
+  // }).then((data) => {
+  //   console.log(data)
+  // })
   // deal with dupe titles (I.e. The Jungle Book from 1964 and 2016)
   processedData = [];
   data.forEach(function (d){
@@ -98,7 +107,7 @@ function initGenreData(){
 
   dataset.forEach(function (d) {
     let index = genreMap[d.genre ?? "Missing"];
-    console.log("D", d)
+    // console.log("D", d)
     genreData[index].income += d.totalGross;
     genreData[index].adjGross += d.adjGross;
     if(d.totalGross > genreData[index].top){
