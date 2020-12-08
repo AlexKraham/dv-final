@@ -50,16 +50,7 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
         adjGross: Number(d["inflation_adjusted_gross"].replace(/[^0-9\.-]+/g, "")),
       };
 }).then((data) => {
-  // d3.csv("data/disney-voice-actors.csv", function(d){
-  //   return {
-  //     character: d['character'],
-  //     actor: d['voice-actor'],
-  //     movie: d['movie']
-  //   }
-  // }).then((data) => {
-  //   console.log(data)
-  // })
-  // deal with dupe titles (I.e. The Jungle Book from 1964 and 2016)
+
   processedData = [];
   data.forEach(function (d){
     if(processedData.some(e => e.title === d.title)){
@@ -88,6 +79,7 @@ d3.csv("data/disney_movies_total_gross.csv", function(d){
   setTimeout(drawInitial(), 2000);
 })
 
+// initializes genre data
 function initGenreData(){
   genreData = [
     { genre: "Musical", income: 0, adjGross: 0, top: 0, bot: 9000000000, topTitle: "", botTitle: "" },
@@ -107,7 +99,7 @@ function initGenreData(){
 
   dataset.forEach(function (d) {
     let index = genreMap[d.genre ?? "Missing"];
-    // console.log("D", d)
+
     genreData[index].income += d.totalGross;
     genreData[index].adjGross += d.adjGross;
     if(d.totalGross > genreData[index].top){
@@ -118,11 +110,12 @@ function initGenreData(){
       genreData[index].bot = d.totalGross;
       genreData[index].botTitle = d.title;
     }
-    // genreData[index]
+
   });
   genreData.sort((a, b) => (a.income > b.income ? -1 : 1));
 }
 
+// initializes data for area charts.
 function initAreaData(){
   areaData = d3
     .nest()
@@ -288,8 +281,8 @@ function initAreaData(){
 
 }
 
+// creates the scales for the charts
 function createScales(){
-  // console.log("AREA In create", areaData);
     categoryColorScale = d3.scaleOrdinal(categories, colors);
     grossIncSizeScale = d3.scaleLinear(d3.extent(dataset, (d) => d.totalGross), [5,35]);
     xGrossIncScale = d3.scaleLinear(d3.extent(dataset, (d) => d.totalGross), [margin.left, margin.left + width]);
@@ -300,10 +293,12 @@ function createScales(){
     yAreaAdjScale = d3.scaleLinear().domain([0, d3.max(areaData, (d) => d.value.adjGross)]).range([margin.top + height / 2, margin.top]);
 }
 
+// recalc x gross inc scale
 function recalc_xGrossIncScale(num){
   return d3.scaleLinear(d3.extent(dataset.slice(0, num), (d) => d.totalGross), [margin.left, margin.left + width]).nice();
 }
 
+// recalc y dot scale
 function recaclc_yDotScale(num){
   return d3.scaleBand().range([margin.top, margin.top + height]).domain(dataset.slice(0,num).map((d) => d.title));
 }
@@ -524,36 +519,6 @@ function drawInitial(){
    
   }
 
-  // ================================== VISUALIZATION 2 ================================== //
-
-  // svg.selectAll(".genre-rect")
-  //     .data(categories)
-  //     .enter()
-  //     .append('rect')
-  //       .attr('class', "genre-rect")
-  //       .attr("x", d => categoriesXY[d][0] + 120 + 1000)
-  //       .attr('y', d => categoriesXY[d][1] + 30)
-  //       .attr('width', 130)
-  //       .attr('height', 35)
-  //       .attr('opacity', 0)
-  //       .attr('fill', 'grey')
-
-  // svg.selectAll(".label-text")
-  //   .data(categories).enter()
-  //   .append('text')
-  //   .attr('class', 'label-text')
-  //   .attr('opacity', 0)
-  //   .raise()
-  
-  // svg.selectAll(".label-text")
-  //     .text(d => d)
-  //     .attr('x', d => categoriesXY[d][0] + 200 + 1000)
-  //     .attr('y', d => categoriesXY[d][1] - 500)
-  //     .attr('font-family', 'Domine')
-  //     .attr('font-size', '12px')
-  //     .attr('font-weight', 700)
-  //     .attr('fill', 'black')
-  //     .attr('text-anchor', 'middle')
 
   // ================================== VISUALIZATION 3 ================================== //
   let xTimeAxis = d3.axisBottom(xAreaScale);
@@ -835,8 +800,6 @@ function drawInitial(){
     .attr("value", (d) => d);
 
   function updateNumChart(selectedGroup) {
-    // console.log("Updating", selectedGroup);
-    // console.log("area data", areaData);
     xNumLineScale = d3
       .scaleTime()
       .domain(d3.extent(areaData, (d) => d.key))
@@ -877,7 +840,6 @@ function drawInitial(){
   });
 
   // // ================================== VISUALIZATION 8: Bar Chart ================================== //
-  // console.log("GENRE", genreData);
   xGenreScale = d3
     .scaleLinear()
     .domain(d3.extent(genreData, (d) => d.income))
@@ -1113,6 +1075,7 @@ function mouseOut(d, i) {
       .attr("stroke-width", 0);
 }
 
+// cleans all other charts and removes or hides other charts.
 function clean(chartType){
   
   let svg = d3.select("#vis").select("svg");
